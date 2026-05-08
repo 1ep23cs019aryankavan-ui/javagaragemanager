@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Garage Service Management</title>
+    <style>
+        body { font-family: sans-serif; background: #5fd9b1; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; background: rgb(201, 58, 58); padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .section { display: none; padding: 20px; border-top: 2px solid #4986db; }
+        .active { display: block; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; }
+        button { background: #2563eb; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .nav-btn { background: #64748b; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Main Menu</h1>
+    <button class="nav-btn" onclick="showSection('customer')">1. Customer: Book a Service</button>
+    <button class="nav-btn" onclick="showSection('mechanic')">2. Mechanic: View & Update</button>
+    <button class="nav-btn" style="background:#ef4444;" onclick="exitApp()">3. Exit</button>
+
+    <!-- 1. CUSTOMER SECTION -->
+    <div id="customer" class="section">
+        <h2>Book a Service</h2>
+        <input type="text" id="custName" placeholder="Your Name">
+        <input type="text" id="vehModel" placeholder="Vehicle Model (e.g. Honda Civic)">
+        <input type="text" id="serviceType" placeholder="Service Needed (e.g. Oil Change)">
+        <button onclick="bookService()">Submit Booking</button>
+    </div>
+
+    <!-- 2. MECHANIC SECTION -->
+    <div id="mechanic" class="section">
+        <h2>Mechanic Dashboard</h2>
+        <button onclick="loadAppointments()" style="background:#10b981;">Refresh List</button>
+        <table id="apptTable">
+            <thead>
+                <tr><th>ID</th><th>Customer</th><th>Vehicle</th><th>Service</th><th>Status</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function exitApp() {
+        if(confirm("Close the application?")) { window.close(); document.body.innerHTML = "<h1>Application Closed.</h1>"; }
+    }
+
+    async function bookService() {
+        const data = {
+            name: document.getElementById('custName').value,
+            model: document.getElementById('vehModel').value,
+            service: document.getElementById('serviceType').value
+        };
+        const response = await fetch('/api/appointments/book', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if(response.ok) { alert("Booked Successfully!"); loadAppointments(); }
+    }
+
+    async function loadAppointments() {
+        const response = await fetch('/api/appointments/view');
+        const data = await response.json();
+        const tbody = document.querySelector("#apptTable tbody");
+        tbody.innerHTML = "";
+        data.forEach(item => {
+            tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.name}</td><td>${item.model}</td><td>${item.service}</td><td><b>${item.status}</b></td></tr>`;
+        });
+    }
+</script>
+</body>
+</html>S
